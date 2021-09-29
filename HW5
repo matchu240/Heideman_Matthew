@@ -1,0 +1,43 @@
+library(tidyverse)
+library(tidytext)
+library(dplyr)
+
+# I have loaded the libraries I felt were needed
+data1 <- read.csv("gop_debates.csv")
+
+# I have loaded the debate data
+
+data %>%
+  unnest_tokens(data, text) %>%
+  count(who, word, sort = TRUE)
+  
+  
+corpus <- data %>% corpus(docid_field = "who", unique_docnames = FALSE)
+data$who <- as.character(data$character)
+ ?unnest
+data <- as.character(data)
+#bad mistake
+anti_join(stop_words) %>%
+  count(words,text, sort = TRUE)
+  
+data %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE) %>%
+# the code acted as if something were advancing but I see no results
+  filter(n > 75) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x=word, y=n)) +
+  geom_col() +
+  xlab(NULL) +  
+  coord_flip()
+
+data_word_n <- data %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  count(text, word, sort = TRUE)
+# I have either had the errors: no applicable pull applied to an object of class function or -x- must be a vector of 1 or more
+# something in the count line is throwing everything off. 
+# making changes or mutating the data format does nothing to help the cause -numeric, character, or factor all results the same
+# the data is not able to be made into a corpus without error and tokenizng the data is unavailable.
+# absolutely 0 problems were encountered with the football tweet data and when I try to pull it up it displays the same framework as the gop debates
