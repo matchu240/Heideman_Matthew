@@ -1,0 +1,84 @@
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,"national security")) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# I have loaded the frames related to national security. 
+# What are the most common 15 framegrams for national security issues in the GOP debate data set?
+
+unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,"national security|national secur")) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+stem_strings("national security saftey military threat")
+lemmatize_strings("national security saftey military threat")
+
+sacur_terms <- "nation secur| saftei|militari|threat|national security|saftey|military|"
+# after searching national security synonyms I have saved all terms and roots
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,secur_terms)) %>% 
+  filter(n > 3) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# here are the results from my initial trigram. 
+
+
+str_count("national security",paste(stop_words$word, collapse = "|"))
+
+str_count("national security","in")
+
+str_count("national security","\\bin\\b") # \\b = word boundary
+
+stop_words_bounded1 <- paste0("\\b", stop_words$word, "\\b", collapse = "|")
+
+str_count("national security", stop_words_bounded1)
+# I found the stop words and identified them in the bounded1 group
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,sacur_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+# here is a version depicting the entire dataset
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,sacur_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# These are the top 15 trigrams that are contextualized with national security issues. 
+
