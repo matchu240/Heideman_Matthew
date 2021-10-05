@@ -1,0 +1,210 @@
+library(tidyverse)
+library(tidytext)
+library(textstem)
+
+data <- read_csv("gop_debates.csv")
+# I have loaded the libraries and data set needed to perform the framegram analyzation. 
+
+?filter
+
+data %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE) %>%
+  filter(who, "TRUMP", "RUBIO", "CRUZ") %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x=word, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+# I tried a few concepts that did not translate to production. I will move on and try to work with the  filter function. 
+
+data %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 200) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x=word, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(n > 200) %>%
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(n > 100) %>%
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# I wanted to follow the same filtering format that was introduced in the framegram workshop.
+
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,"immigration")) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# I wanted to filter the conversation surrounding immigration to begin the project.
+
+stem_words("immigration")
+lemmatize_words("immigration")
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,"immigration|immigr")) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+str_detect("data","who")
+?str_detect
+#I am becoming concerned that none of the filters I am attempting will work.
+stem_strings("immigration border security illegal legal ")
+lemmatize_strings("immigration border security illegal legal")
+
+
+immigr_terms <- "immigration|immigr|border secr|border|illeg|illegal|legal|"
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(n > 3) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# I have grouped a few of the synonyms that I felt were relevant to the project
+str_count("who","CRUZ") 
+str_count("data", "who")
+
+str_count("TRUMP")
+str_count("CRUZ")
+
+str_count("immigration",paste(stop_words$word, collapse = "|"))
+
+str_count("immigration","in")
+
+str_count("immigration","\\bin\\b") # \\b = word boundary
+
+stop_words_bounded1 <- paste0("\\b", stop_words$word, "\\b", collapse = "|")
+
+str_count("immigration", stop_words_bounded1)
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  filter(n > 2) %>% # note filter change 
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  filter(n > 2) %>% # note filter change\
+  mutate(trigram = reorder(trigram, n)) %>%
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+data %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  mutate(trigram = reorder(trigram, n)) %>%
+  slice(1:15) %>% # top 10 
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+#here are the top 15 trigrams in relation to the immigration question. I am currently considering how to execute the name filtration.
+
+data1 <- data%>% filter(who == "TRUMP")
+# I believe that I have filtered to only President Trump's transcripts
+
+data1 %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  mutate(trigram = reorder(trigram, n)) %>%
+  slice(1:15) %>% # top 10 
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# Donald Trump's immigration themes during debates
+
+data2 <- data%>% filter(who == "CRUZ")
+
+data2 %>%
+  unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  mutate(trigram = reorder(trigram, n)) %>%
+  slice(1:15) %>% # top 10 
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# Senator Cruz's top 15 immigration themes 
+
+data3 <- data%>%filter(who == "RUBIO")
+
+data3 %>%
+unnest_tokens(trigram, text, token = "ngrams", n=3) %>% 
+  #anti_join(stop_words) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(str_detect(trigram,immigr_terms)) %>% 
+  filter(str_count(trigram,stop_words_bounded1) < 1) %>% 
+  mutate(trigram = reorder(trigram, n)) %>%
+  slice(1:15) %>% # top 10 
+  ggplot(aes(x=trigram, y=n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+# Senator Rubio's top 15 immigration themes during presidential debates. 
