@@ -1,0 +1,84 @@
+library(tidyverse)
+library(tidytext)
+library(textstem)
+library(fuzzyjoin)
+library(dabestr)
+
+afin <- get_sentiments("afinn")
+# I have loaded the libraries that I need to proceed
+
+fear_words <- data.frame(word=c("fear","scare", "afraid", "nervous"))
+fear_words %>% left_join(afin)
+
+fear_words_stemmed <- fear_words %>% mutate(word=stem_words(word))
+
+afin_stemmed <- afin %>% mutate(word=stem_words(word))
+fear_words_stemmed %>% left_join(afin_stemmed)
+# I have run a stemmed analysis 
+
+fear_words_lemma <- fear_words %>% mutate(word=lemmatize_words(word))
+afin_lemma <- afin %>% mutate(word=lemmatize_words(word))
+fear_words_lemma %>% left_join(afin_lemma)
+# lemmatized analysis
+
+fear_words %>% regex_left_join(afin)
+
+fear_words %>% regex_left_join(afin) %>% group_by(word.x) %>% summarise(value=mean(value))
+# fuzzy join
+
+fear_words_stemmed %>% left_join(afin_stemmed)
+fear_words_lemma %>% left_join(afin_lemma)
+fear_words %>% regex_left_join(afin) group_by(who,word.x) %>% summarise(value=mean(value))
+# once again, the information provided in the workshops does not translate to a functioning code on my console
+
+data <- read_csv("gop_debates.csv")
+
+afin_anlysis <- data %>% 
+  unnest_tokens(word, text, token = "words") %>% 
+  regex_inner_join(afin) %>% 
+  group_by(who, word.x) %>% 
+  summarise(value = mean(value)) %>% 
+  ungroup() %>% 
+  group_by(who) %>% 
+  summarise(sent_score = sum(value))
+# I have the sentiment score of all candidates
+
+data_afin <- data %>% left_join(afin_anlysis)
+
+data_afin %>% group_by(who) %>% filter(!is.na(sent_score)) %>% summarise(ave=mean(sent_score))
+# these are the mean values for the field. 
+
+afin_dabest <- data_afin %>% select(who, sent_score) %>% 
+  filter(!is.na(sent_score)) %>%
+   dabest(who,
+         sent_score,
+         idx= c("CRUZ", "RUBIO", "FIORINA", "TRUMP"),
+         paired = FALSE)
+
+afin_dabest %>% mean_diff() %>% plot()
+
+?mean_diff
+
+afin_anlysis <- data %>% 
+  unnest_tokens(word, text, token = "words") %>% 
+  regex_inner_join(afin) %>% 
+  group_by(who, word.x) %>% 
+  summarise(value = mean(value)) %>% 
+  ungroup() %>% 
+  group_by("FIORINA","TRUMP","CRUZ","RUBIO") %>% 
+  summarise(sent_score = sum(value))
+
+?filter
+?unnest_tokens
+?is.na
+
+
+
+# I will not spitball the mutate function until I am sure of what I need to accomplish my goal. 
+# Since we have identified Google as a source for derailing my code in previous lessons, I have no way of troubleshooting code that has been taken directly from the lesson preparation. If I were able to see a code that actually worked with the data we have been provided, I might have had the capacity to understand what is actually going wrong. 
+
+# Fiorina had the most positive sentiment at around +10.5, while the others were in negative territory. 
+# The average sentiment score for Fiorina was 10.5 with 95% confidence intervals
+# The average for Cruz was -133, with a difference of 122.5 at 95% CI
+# The average for Rubio was -83.1, with a difference of 72.6 at 95% CI
+# The average for Trump was -61.8, with a difference of 51.3 at 95% CI. 
